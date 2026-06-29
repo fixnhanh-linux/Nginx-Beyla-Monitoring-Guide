@@ -80,7 +80,38 @@ Chạy Beyla (Cần quyền root do sử dụng eBPF). Trỏ biến môi trườ
 ```bash
 sudo BEYLA_CONFIG_PATH=/etc/beyla/beyla-config.yaml beyla
 ```
-Bạn có thể sử dụng `systemd` để cấu hình Beyla chạy ngầm và khởi động cùng hệ thống.
+### 3.4. Cấu hình chạy ngầm với systemd
+Để Beyla chạy ngầm ổn định và tự khởi động lại khi server reboot, bạn hãy tạo file service:
+```bash
+sudo nano /etc/systemd/system/beyla.service
+```
+
+Dán cấu hình sau vào:
+```ini
+[Unit]
+Description=Grafana Beyla - eBPF Auto-instrumentation
+After=network.target
+
+[Service]
+Type=simple
+# Đường dẫn tới file config và file chạy
+Environment="BEYLA_CONFIG_PATH=/etc/beyla/beyla-config.yaml"
+# (Tùy chọn) Ghi đè port Prometheus nếu không dùng file yaml: Environment="BEYLA_PROMETHEUS_PORT=8999"
+ExecStart=/usr/local/bin/beyla
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Khởi động và kích hoạt service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable beyla
+sudo systemctl start beyla
+sudo systemctl status beyla
+```
 
 ---
 
