@@ -164,6 +164,12 @@ Trong kho lưu trữ này (repository), tôi đã đính kèm sẵn file **`beyl
    - Thống kê trực quan các trạng thái trả về (Status Codes như 200, 404, 500...), cho phép bạn nhanh chóng định vị được endpoint nào đang phát sinh lỗi.
 4. **Distributed Tracing (Dấu vết phân tán):**
    - Ngoài các biểu đồ Metric tổng quan, Beyla có khả năng tự động sinh ra các đoạn Trace. Nếu kết nối với backend như Grafana Tempo, bạn có thể click trực tiếp từ một request lỗi trên dashboard để xem chính xác thời gian xử lý qua từng service (Span).
+5. **Inbound vs Outbound Traffic Differentiation:**
+   - Hệ thống tự động phân tách các request đi vào NGINX (Inbound) và các request mà NGINX proxy/gọi ngược ra các dịch vụ backend khác (Outbound), giúp cô lập lỗi nằm ở frontend hay backend.
+6. **Top Slowest Endpoints (P95):**
+   - Bảng xếp hạng trực quan các đường dẫn (HTTP routes) hoặc dịch vụ RPC có thời gian phản hồi chậm nhất (P95). Đây là cơ sở tuyệt vời để bạn biết chính xác cần ưu tiên tối ưu hóa (optimize) đoạn mã hay API nào.
+7. **Service Topology / Dependency Map:**
+   - Thông qua lượng dữ liệu eBPF khổng lồ, khi kết hợp với hệ thống Tracing, Grafana có thể tự động vẽ bản đồ luồng đi của dữ liệu (Node Graph), cho thấy NGINX đang liên kết với các microservices nào mà không cần bạn vẽ tay.
 
 ---
 
