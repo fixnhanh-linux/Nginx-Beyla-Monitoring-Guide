@@ -243,58 +243,25 @@ Một trong những "vũ khí bí mật" mạnh mẽ nhất của Grafana Beyla 
 
 ## 8. Hướng dẫn thêm Website thật để giám sát (Thêm Monitor)
 
-Nếu bạn muốn áp dụng hệ thống giám sát này cho một trang web thực tế (ví dụ: `fixcham.cloud`) chạy trên NGINX thay vì chỉ dùng dữ liệu giả lập, bạn chỉ cần thực hiện 3 bước tiêu chuẩn của NGINX. 
+Nếu bạn muốn áp dụng hệ thống giám sát này cho một trang web thực tế (ví dụ: `fixcham.cloud`) chạy trên NGINX thay vì chỉ dùng dữ liệu giả lập, việc này vô cùng đơn giản.
 
-Điểm tuyệt vời của Beyla là **Zero-code**: Chỉ cần NGINX chạy web, Beyla sẽ tự động "đánh hơi" và giám sát nó mà không cần cài đặt thêm agent vào code của bạn.
+Điểm tuyệt vời của Beyla là tính năng **Zero-code**: Chỉ cần NGINX chạy một trang web thực tế, Beyla sẽ tự động "đánh hơi" và giám sát nó mà không cần cài đặt thêm bất kỳ thư viện (agent) nào vào mã nguồn của bạn.
 
-### Bước 1: Tạo mã nguồn trang web
-Tạo thư mục chứa mã nguồn và file `index.html`:
+Để giúp bạn thử nghiệm nhanh chóng, tôi đã đóng gói toàn bộ quy trình tạo Website (gồm tạo thư mục web `/var/www/`, tạo file `index.html` giao diện xịn, và viết cấu hình Server Block Virtual Host cho NGINX) vào một kịch bản duy nhất.
+
+### Cách triển khai Website:
+Ngay trong thư mục gốc của repository này, bạn chỉ cần chạy lệnh sau:
 ```bash
-sudo mkdir -p /var/www/fixcham.cloud/html
+# Phân quyền thực thi
+chmod +x setup_real_web.sh
 
-# Tạo một trang web cơ bản
-sudo bash -c 'cat << EOF > /var/www/fixcham.cloud/html/index.html
-<!DOCTYPE html>
-<html>
-<head><title>Welcome to fixcham.cloud</title></head>
-<body>
-    <h1>Trang web thật 100%</h1>
-    <p>Hệ thống này đang được giám sát bởi <b>Grafana Beyla eBPF</b>.</p>
-</body>
-</html>
-EOF'
+# Chạy kịch bản tự động
+sudo ./setup_real_web.sh
 ```
 
-### Bước 2: Cấu hình Virtual Host (Server Block) trên NGINX
-Tạo file cấu hình để NGINX nhận diện tên miền `fixcham.cloud`:
-```bash
-sudo nano /etc/nginx/sites-available/fixcham.cloud
-```
-Nội dung file:
-```nginx
-server {
-    listen 80;
-    server_name fixcham.cloud www.fixcham.cloud;
-    
-    root /var/www/fixcham.cloud/html;
-    index index.html;
-    
-    location / {
-        try_files $uri $uri/ =404;
-    }
-}
-```
+**Kết quả:** Kịch bản sẽ tự động tạo ra một trang web tĩnh tuyệt đẹp tại domain `fixcham.cloud` và khởi động lại NGINX. 
 
-### Bước 3: Kích hoạt và tải lại NGINX
-```bash
-# Kích hoạt trang web
-sudo ln -s /etc/nginx/sites-available/fixcham.cloud /etc/nginx/sites-enabled/
-
-# Tải lại cấu hình NGINX
-sudo systemctl reload nginx
-```
-
-**Hoàn tất!** Giờ đây bất cứ ai truy cập vào trang web của bạn thông qua domain `fixcham.cloud`, công nghệ eBPF của Beyla sẽ lập tức chụp lấy request đó và bắn lên Dashboard Grafana để bạn theo dõi băng thông, độ trễ và các lỗi nếu có.
+Ngay lúc này, bất cứ ai truy cập vào trang web của bạn thông qua domain `fixcham.cloud`, công nghệ eBPF của Beyla sẽ lập tức chụp lấy request đó ở cấp độ nhân hệ điều hành (Kernel) và bắn lên Dashboard Grafana để bạn theo dõi băng thông, độ trễ và các lỗi (nếu có).
 
 ---
 
