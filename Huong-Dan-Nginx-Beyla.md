@@ -143,10 +143,10 @@ Trong kho lưu trữ này (repository), tôi đã đính kèm sẵn file **`beyl
 
 ### Hướng dẫn Import Dashboard:
 1. Mở giao diện **Grafana**.
-2. Đảm bảo bạn đã thêm Data Source là **Prometheus** (nơi chứa dữ liệu Beyla gửi về).
+2. Đảm bảo bạn đã thêm Data Source là **Prometheus** (nơi chứa dữ liệu Beyla gửi về). Nếu bạn chạy bằng Docker Compose, Data Source này đã được tạo sẵn.
 3. Ở thanh menu bên trái, chọn biểu tượng **Dashboards** (hình 4 ô vuông) -> Nhấn vào nút **New** -> Chọn **Import**.
 4. Bạn có 2 cách để nhập:
-   - **Cách 1 (Sử dụng file có sẵn):** Nhấn **Upload dashboard JSON file** và chọn file `beyla-dashboard.json` nằm trong thư mục code này.
+   - **Cách 1 (Sử dụng file có sẵn):** Nhấn **Upload dashboard JSON file** và chọn file `beyla-dashboard.json` nằm trong thư mục `grafana/provisioning/dashboards/` của mã nguồn này.
    - **Cách 2 (Sử dụng ID online):** Dán số `19923` vào ô *Import via grafana.com* và nhấn **Load**.
 5. Trong bước tiếp theo, hãy chọn Data Source Prometheus của bạn ở mục thả xuống và nhấn **Import**.
 
