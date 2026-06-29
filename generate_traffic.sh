@@ -25,8 +25,8 @@ WEIGHTED_ENDPOINTS=(
   "/admin-panel"
 )
 
-# Danh sách phương thức HTTP
-METHODS=("GET" "GET" "GET" "POST")
+# Danh sách phương thức HTTP (Thêm GRPC giả mạo để biểu đồ RPC sáng đèn)
+METHODS=("GET" "GET" "GET" "GET" "POST" "GRPC")
 
 while true; do
   # Lấy ngẫu nhiên đường dẫn và phương thức
@@ -42,6 +42,10 @@ while true; do
   # Thực thi curl ngầm và chỉ lấy ra HTTP Status Code
   if [ "$RANDOM_METHOD" == "POST" ]; then
     STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST -d "{\"test\":\"data\"}" "$BASE_URL$RANDOM_EP")
+  elif [ "$RANDOM_METHOD" == "GRPC" ]; then
+    # Fake gRPC request để kích hoạt biểu đồ RPC (cố tình ép dùng HTTP/2)
+    # NGINX sẽ trả về 400 hoặc 404, nhưng Beyla sẽ bắt được header application/grpc
+    STATUS=$(curl --http2-prior-knowledge -s -o /dev/null -w "%{http_code}" -H "Content-Type: application/grpc" -H "TE: trailers" -X POST "$BASE_URL/FakeGRPCService/FakeMethod")
   else
     STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$RANDOM_EP")
   fi
@@ -53,6 +57,9 @@ while true; do
     echo -e "\e[33m[Chuyển hướng - $STATUS]\e[0m" # Màu vàng
   elif [[ "$STATUS" == 4* ]]; then
     echo -e "\e[31m[Lỗi Client - $STATUS]\e[0m" # Màu đỏ
+  elif [[ "$STATUS" == 000 ]]; then
+    # curl báo 000 thường là lỗi kết nối HTTP/2 khi server không hỗ trợ
+    echo -e "\e[35m[Fake gRPC Đã Bắn]\e[0m" # Màu tím
   else
     echo -e "\e[31m[Lỗi Server - $STATUS]\e[0m" # Màu đỏ
   fi
