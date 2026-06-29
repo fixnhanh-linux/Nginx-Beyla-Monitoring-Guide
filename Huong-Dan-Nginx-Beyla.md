@@ -181,39 +181,55 @@ helm upgrade --install beyla grafana/beyla -f helm-beyla.yaml -n monitoring --cr
 
 ---
 
-## 6. Trực quan hóa với Grafana Dashboard
+## 6. Trực quan hóa với Grafana Dashboard (Phiên bản Doanh nghiệp)
 
-Trong kho lưu trữ này (repository), tôi đã đính kèm sẵn file **`beyla-dashboard.json`** (phiên bản chuẩn hóa từ ID 19923 của thư viện Grafana) để bạn có thể import và xem ngay lập tức.
+Trong kho lưu trữ này, tôi đã thiết kế và căn chỉnh sẵn file **`beyla-dashboard.json`** (được nâng cấp toàn diện từ thư viện gốc) để biến hệ thống của bạn thành một trung tâm giám sát (NOC) chuyên nghiệp.
 
 ### Hướng dẫn Import Dashboard:
 1. Mở giao diện **Grafana**.
-2. Đảm bảo bạn đã thêm Data Source là **Prometheus** (nơi chứa dữ liệu Beyla gửi về). Nếu bạn chạy bằng Docker Compose, Data Source này đã được tạo sẵn.
-3. Ở thanh menu bên trái, chọn biểu tượng **Dashboards** (hình 4 ô vuông) -> Nhấn vào nút **New** -> Chọn **Import**.
-4. Bạn có 2 cách để nhập:
-   - **Cách 1 (Sử dụng file có sẵn):** Nhấn **Upload dashboard JSON file** và chọn file `beyla-dashboard.json` nằm trong thư mục `grafana/provisioning/dashboards/` của mã nguồn này.
-   - **Cách 2 (Sử dụng ID online):** Dán số `19923` vào ô *Import via grafana.com* và nhấn **Load**.
-5. Trong bước tiếp theo, hãy chọn Data Source Prometheus của bạn ở mục thả xuống và nhấn **Import**.
+2. Ở thanh menu bên trái, chọn biểu tượng **Dashboards** -> Nhấn nút **New** -> Chọn **Import**.
+3. Nhấn **Upload dashboard JSON file** và chọn file `beyla-dashboard.json` nằm trong thư mục `grafana/provisioning/dashboards/` của mã nguồn này.
+4. Chọn Data Source Prometheus và nhấn **Import**.
 
-**Các chỉ số và biểu đồ chính bạn sẽ xem được:**
-1. **Overview — RED Index:**
-   - **Rate (Tốc độ)**: Số lượng request mỗi giây.
-   - **Errors (Lỗi)**: Tỉ lệ phần trăm các request bị lỗi (4xx, 5xx...).
-   - **Duration (Độ trễ)**: Thời gian xử lý phản hồi mạng (Latency tính theo P90/P95/P99).
-2. **Time Series — Traffic & Latency:**
-   - Biểu đồ theo thời gian thực (Time Series) hiển thị xu hướng lưu lượng truy cập (Traffic / số lượng request).
-   - Biểu đồ biến động độ trễ (Latency) theo từng mốc thời gian, giúp bạn dễ dàng phát hiện các điểm nghẽn cổ chai (bottlenecks) hay sự cố mạng bất thường.
-   - Lưu lượng băng thông (Bandwidth) inbound/outbound đi qua NGINX.
-3. **Breakdown — Routes & Status Codes:**
-   - Phân tích chi tiết từng đường dẫn (Route) API hoặc HTTP cụ thể mà NGINX đang phục vụ.
-   - Thống kê trực quan các trạng thái trả về (Status Codes như 200, 404, 500...), cho phép bạn nhanh chóng định vị được endpoint nào đang phát sinh lỗi.
-4. **Distributed Tracing (Dấu vết phân tán):**
-   - Ngoài các biểu đồ Metric tổng quan, Beyla có khả năng tự động sinh ra các đoạn Trace. Nếu kết nối với backend như Grafana Tempo, bạn có thể click trực tiếp từ một request lỗi trên dashboard để xem chính xác thời gian xử lý qua từng service (Span).
-5. **Inbound vs Outbound Traffic Differentiation:**
-   - Hệ thống tự động phân tách các request đi vào NGINX (Inbound) và các request mà NGINX proxy/gọi ngược ra các dịch vụ backend khác (Outbound), giúp cô lập lỗi nằm ở frontend hay backend.
-6. **Top Slowest Endpoints (P95):**
-   - Bảng xếp hạng trực quan các đường dẫn (HTTP routes) hoặc dịch vụ RPC có thời gian phản hồi chậm nhất (P95). Đây là cơ sở tuyệt vời để bạn biết chính xác cần ưu tiên tối ưu hóa (optimize) đoạn mã hay API nào.
-7. **Service Topology / Dependency Map:**
-   - Thông qua lượng dữ liệu eBPF khổng lồ, khi kết hợp với hệ thống Tracing, Grafana có thể tự động vẽ bản đồ luồng đi của dữ liệu (Node Graph), cho thấy NGINX đang liên kết với các microservices nào mà không cần bạn vẽ tay.
+### Cấu trúc Dashboard (Bố cục tối ưu 100%):
+
+Giao diện Dashboard được tinh chỉnh tỉ mỉ theo từng hàng (Row) để giúp kỹ sư và quản lý dễ dàng nắm bắt sức khỏe hệ thống từ tổng quan đến chi tiết:
+
+#### 🌟 Hàng 1: Các "Chỉ số sinh tử" (Big Number / Stat Panels)
+Nằm chễm chệ ngay trên cùng là 4 ô chỉ số cực lớn được tô màu cảnh báo chuẩn mực, giúp bạn liếc mắt 1 giây là biết server đang sống hay chết:
+- 🟡 **Request Rate (RPS)**: Tổng số lượt truy cập mỗi giây (Tốc độ gọi API).
+- 🟡 **Error Rate (4xx + 5xx)**: Tỷ lệ lỗi hiện tại (Tự động chuyển **đỏ rực** nếu vượt ngưỡng báo động 5%).
+- 🔴 **p99 Latency (server)**: Tốc độ phản hồi của 99% request (Thời gian chờ tối đa mà người dùng đang phải chịu).
+- 🔵 **Avg Response Size**: Dung lượng phản hồi trung bình (Giúp phát hiện bất thường nếu API trả về cục dữ liệu quá to).
+
+#### 📊 Hàng 2: Phân bổ trạng thái & Băng thông (Status Codes & Bandwidth)
+- **HTTP Status Codes Breakdown (Cột/Bar chart)**: Chiếm 2/3 diện tích bên trái, thể hiện biến động số lượng các loại mã (200, 404, 500) theo trục thời gian.
+  > [!NOTE] 
+  > **Ghi chú về Đơn vị đếm (RPS vs Count):** Mặc định, các công cụ giám sát DevOps chuyên nghiệp luôn hiển thị Tốc độ truy cập (RPS - Requests per second) sử dụng hàm `rate()`, dẫn đến việc số lượng truy cập thường bị lẻ thập phân (ví dụ: `1.27 req/s`). Tuy nhiên, để thân thiện và trực quan hơn với người mới, Dashboard này đã được tôi tinh chỉnh tùy biến lại (dùng hàm `increase()` và ép `decimals: 0`) để nó luôn hiển thị **chính xác tổng số lượng request (ra số nguyên chẵn như 1, 2, 5, 20)** thay vì tốc độ.
+- **Status Code Allocation (Tròn/Pie chart)**: Chiếm 1/3 diện tích bên phải, thể hiện tỷ lệ % trực quan giữa các mã trạng thái (Ví dụ: 80% là mã 200, 15% là mã 404, 5% là mã 500).
+- **Network Traffic / Bandwidth (Full-width)**: Biểu đồ đường kéo dài toàn màn hình hiển thị lượng băng thông Inbound/Outbound. Việc trải rộng 100% giúp biểu đồ không bị gò bó, dễ dàng soi xét từng đợt "sóng" traffic.
+
+#### 🐌 Hàng 3: Xác định nút thắt cổ chai (Slowest Endpoints)
+- **Slowest HTTP routes (P95)**: Bảng xếp hạng các đường dẫn (URL/API) có thời gian xử lý chậm nhất. Bảng này được kéo rộng toàn màn hình để đảm bảo các chuỗi URL dài không bao giờ bị cắt xén hay che khuất.
+
+#### 🕵️ Hàng 4: Truy vết phân tán & Sơ đồ kiến trúc (Tracing & Topology)
+Đây là "trái tim" của công nghệ eBPF khi kết hợp với Grafana Tempo:
+- **Recent Traces (Bảng TraceQL)**: Hiển thị danh sách các request theo thời gian thực (Trace ID, Tên API, Thời gian thực thi). Khi click vào một Trace ID, bạn sẽ nhìn thấu ruột gan của request đó (thời gian đi qua NGINX mất bao lâu, đi qua Backend mất bao lâu).
+- **Service Topology (Sơ đồ mạng nhện)**: Hệ thống tự động vẽ ra bản đồ liên kết của các microservices (Ví dụ: `frontend` gọi tới `fixcham.cloud`, `fixcham.cloud` gọi tới `backend-api`). Nhìn vào đây, bạn sẽ lập tức biết kiến trúc hệ thống đang giao tiếp thế nào mà không cần phải tự vẽ sơ đồ tay!
+
+---
+
+## 7. Trải nghiệm Demo "Thế giới thực" (Gắn tên miền & Giả lập Microservice)
+
+Để biến bài lab này thành một hệ thống thực tế (Production-like), kịch bản chạy ngầm đã được cấu hình để bơm **hàng loạt luồng dữ liệu ảo nhưng mang hình hài thật**. 
+
+Thay vì mọi thứ chỉ hiển thị là `localhost`, hệ thống đang liên tục giả lập các truy cập vào đa dạng tên miền của hệ sinh thái **`fixcham.cloud`**:
+1. **`api.fixcham.cloud`**: Phục vụ API người dùng (`/api/v1/users`), sản phẩm, và đôi lúc cố tình nhả lỗi 500.
+2. **`auth.fixcham.cloud`**: Hệ thống xác thực (`/login`, `/register`, `/oauth/token`).
+3. **`payments.fixcham.cloud`**: Cổng thanh toán (`/checkout`, Webhook Stripe).
+4. **`static.fixcham.cloud`**: Phục vụ file tĩnh (JS, CSS) và đôi khi truy cập file không tồn tại để sinh lỗi 404.
+
+**Kết quả:** Khi mở Grafana, bạn sẽ thấy Dashboard ngập tràn dữ liệu đa dạng y hệt như một hệ thống thương mại điện tử lớn đang phục vụ hàng nghìn người dùng cùng lúc. Tên dịch vụ (Service Name) cũng đã được cấu hình tĩnh lại thành **`fixcham.cloud`** để đồng bộ nhận diện.
 
 ---
 
