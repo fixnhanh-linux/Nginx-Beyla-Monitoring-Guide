@@ -44,7 +44,13 @@ sudo mv beyla /usr/local/bin/beyla
 ### 3.2. Cấu hình quét NGINX
 Beyla cung cấp một cơ chế gọi là **Discovery** để tự động nhận diện ứng dụng. Cấu hình Beyla sẽ được định nghĩa qua file YAML. 
 
-Tạo file `beyla-config.yaml` trên máy chủ:
+Tạo một thư mục cấu hình và tạo file `beyla-config.yaml` (ví dụ đặt tại `/etc/beyla/` cho chuẩn mực hệ thống):
+```bash
+sudo mkdir -p /etc/beyla
+sudo nano /etc/beyla/beyla-config.yaml
+```
+
+Dán nội dung sau vào file vừa tạo:
 ```yaml
 discovery:
   services:
@@ -70,8 +76,9 @@ prometheus_export:
 *Lưu ý: Nếu dùng cấu hình `prometheus_export`, bạn cần cấu hình Prometheus thêm 1 job scrape vào `IP_CUA_MAY_CHU:8999/metrics`.*
 
 ### 3.3. Khởi chạy Beyla
+Chạy Beyla (Cần quyền root do sử dụng eBPF). Trỏ biến môi trường `BEYLA_CONFIG_PATH` tới file cấu hình bạn vừa tạo:
 ```bash
-sudo BEYLA_CONFIG_PATH=beyla-config.yaml beyla
+sudo BEYLA_CONFIG_PATH=/etc/beyla/beyla-config.yaml beyla
 ```
 Bạn có thể sử dụng `systemd` để cấu hình Beyla chạy ngầm và khởi động cùng hệ thống.
 
