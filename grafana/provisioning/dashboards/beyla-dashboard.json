@@ -1245,6 +1245,55 @@
       ],
       "title": "Error rate",
       "type": "timeseries"
+    },
+    {
+      "type": "row",
+      "title": "Distributed Tracing & Service Topology (Requires Tempo/Tracing Datasource)",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "id": 20000
+    },
+    {
+      "type": "traces",
+      "title": "Recent Traces (Distributed Tracing)",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 33
+      },
+      "id": 20001,
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "targets": [
+        {
+          "query": "{service.name=\"$Service\"}"
+        }
+      ],
+      "options": {}
+    },
+    {
+      "type": "nodeGraph",
+      "title": "Service Topology / Dependency Map",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 33
+      },
+      "id": 20002,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [],
+      "options": {}
     }
   ],
   "refresh": "5s",
