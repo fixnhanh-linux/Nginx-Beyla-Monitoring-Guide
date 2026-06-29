@@ -47,6 +47,9 @@ while true; do
     # NGINX sẽ trả về 400 hoặc 404, nhưng Beyla sẽ bắt được header application/grpc
     STATUS=$(curl --http2-prior-knowledge -s -o /dev/null -w "%{http_code}" -H "Content-Type: application/grpc" -H "TE: trailers" -X POST "$BASE_URL/FakeGRPCService/FakeMethod")
   else
+    # Outbound traffic generation
+    curl -s "http://localhost/api/data?query=test" > /dev/null &
+    curl -s "http://localhost/api/outbound" > /dev/null &
     STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$RANDOM_EP")
   fi
 
