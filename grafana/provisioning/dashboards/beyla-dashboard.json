@@ -61,6 +61,69 @@
   "liveNow": false,
   "panels": [
     {
+      "type": "row",
+      "title": "Custom Metrics: Status Codes & Bandwidth",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 9999
+    },
+    {
+      "type": "barchart",
+      "title": "HTTP Status Codes Breakdown",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 10000,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "expr": "sum by (http_response_status_code) (rate(http_server_duration_count{service_name=~\"$Service\"}[$__rate_interval]))",
+          "legendFormat": "Status {{http_response_status_code}}"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "text": {
+          "valueSize": 14
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network Traffic / Bandwidth (Bytes)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 10001,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_request_size_bytes_sum{service_name=~\"$Service\"}[$__rate_interval]))",
+          "legendFormat": "Inbound (Bytes/s)"
+        },
+        {
+          "expr": "sum(rate(http_server_response_size_bytes_sum{service_name=~\"$Service\"}[$__rate_interval]))",
+          "legendFormat": "Outbound (Bytes/s)"
+        }
+      ]
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_GRAFANACLOUD-MARIOMACIAS-PROM}"
@@ -138,7 +201,7 @@
         "h": 5,
         "w": 13,
         "x": 0,
-        "y": 0
+        "y": 9
       },
       "id": 35,
       "options": {
@@ -292,7 +355,7 @@
         "h": 5,
         "w": 11,
         "x": 13,
-        "y": 0
+        "y": 9
       },
       "id": 56,
       "options": {
@@ -360,7 +423,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 14
       },
       "id": 72,
       "panels": [],
@@ -434,7 +497,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 6
+        "y": 15
       },
       "id": 1,
       "options": {
@@ -590,7 +653,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 6
+        "y": 15
       },
       "id": 58,
       "options": {
@@ -725,7 +788,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 6
+        "y": 15
       },
       "id": 59,
       "options": {
@@ -775,7 +838,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 23
       },
       "id": 5,
       "panels": [],
@@ -849,7 +912,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 15
+        "y": 24
       },
       "id": 6,
       "options": {
@@ -1005,7 +1068,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 15
+        "y": 24
       },
       "id": 8,
       "options": {
@@ -1139,7 +1202,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 15
+        "y": 24
       },
       "id": 73,
       "options": {
