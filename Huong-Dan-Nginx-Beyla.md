@@ -27,12 +27,18 @@ Mô hình triển khai phổ biến với Grafana Beyla sẽ trông như sau:
 ### 3.1. Cài đặt Beyla
 Tải xuống và phân quyền thực thi cho file nhị phân của Beyla:
 ```bash
-# Tải bản phát hành mới nhất dành cho Linux AMD64
-wget https://github.com/grafana/beyla/releases/latest/download/beyla-linux-amd64
-chmod +x beyla-linux-amd64
+# Lấy phiên bản mới nhất từ GitHub API
+BEYLA_VERSION=$(curl -s https://api.github.com/repos/grafana/beyla/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+
+# Tải bản phát hành (tar.gz) mới nhất dành cho Linux AMD64
+wget "https://github.com/grafana/beyla/releases/download/${BEYLA_VERSION}/beyla-linux-amd64-${BEYLA_VERSION}.tar.gz"
+
+# Giải nén file
+tar -xvzf beyla-linux-amd64-${BEYLA_VERSION}.tar.gz
 
 # Di chuyển vào thư mục hệ thống để dễ sử dụng
-sudo mv beyla-linux-amd64 /usr/local/bin/beyla
+chmod +x beyla
+sudo mv beyla /usr/local/bin/beyla
 ```
 
 ### 3.2. Cấu hình quét NGINX
