@@ -133,7 +133,7 @@ helm upgrade --install beyla grafana/beyla -f helm-beyla.yaml -n monitoring --cr
    ```
 
 4. Truy cập Grafana tại `http://localhost:3000` (Tài khoản mặc định: `admin` / `admin`).
-5. Vào menu **Dashboards** -> Chọn thư mục **Beyla** -> Mở dashboard **Beyla Dashboards** để xem kết quả.
+5. Vào menu **Dashboards** -> Chọn thư mục **Beyla** -> Mở dashboard **Overview — RED Index** (hoặc **Beyla RED Metrics**) để xem kết quả trực quan hoá.
 
 ---
 
@@ -150,14 +150,32 @@ Trong kho lưu trữ này (repository), tôi đã đính kèm sẵn file **`beyl
    - **Cách 2 (Sử dụng ID online):** Dán số `19923` vào ô *Import via grafana.com* và nhấn **Load**.
 5. Trong bước tiếp theo, hãy chọn Data Source Prometheus của bạn ở mục thả xuống và nhấn **Import**.
 
-**Các chỉ số bạn sẽ thu thập được:**
-- **RED Metrics**: Tốc độ Request (Rate), Tỉ lệ Lỗi (Errors), Độ trễ mạng (Duration/Latency).
-- Trạng thái HTTP Status Code trả về (2xx, 4xx, 5xx...).
-- Lưu lượng băng thông inbound/outbound qua NGINX.
+**Các chỉ số và biểu đồ chính bạn sẽ xem được:**
+1. **Overview — RED Index:**
+   - **Rate (Tốc độ)**: Số lượng request mỗi giây.
+   - **Errors (Lỗi)**: Tỉ lệ phần trăm các request bị lỗi (4xx, 5xx...).
+   - **Duration (Độ trễ)**: Thời gian xử lý phản hồi mạng (Latency tính theo P90/P95/P99).
+2. **Time Series — Traffic & Latency:**
+   - Biểu đồ theo thời gian thực (Time Series) hiển thị xu hướng lưu lượng truy cập (Traffic / số lượng request).
+   - Biểu đồ biến động độ trễ (Latency) theo từng mốc thời gian, giúp bạn dễ dàng phát hiện các điểm nghẽn cổ chai (bottlenecks) hay sự cố mạng bất thường.
+   - Lưu lượng băng thông (Bandwidth) inbound/outbound đi qua NGINX.
+3. **Breakdown — Routes & Status Codes:**
+   - Phân tích chi tiết từng đường dẫn (Route) API hoặc HTTP cụ thể mà NGINX đang phục vụ.
+   - Thống kê trực quan các trạng thái trả về (Status Codes như 200, 404, 500...), cho phép bạn nhanh chóng định vị được endpoint nào đang phát sinh lỗi.
+4. **Distributed Tracing (Dấu vết phân tán):**
+   - Ngoài các biểu đồ Metric tổng quan, Beyla có khả năng tự động sinh ra các đoạn Trace. Nếu kết nối với backend như Grafana Tempo, bạn có thể click trực tiếp từ một request lỗi trên dashboard để xem chính xác thời gian xử lý qua từng service (Span).
 
 ---
 
-## 7. So sánh: Beyla vs NGINX Prometheus Exporter
+## 7. Các tính năng nâng cao nổi bật
+
+Một trong những "vũ khí bí mật" mạnh mẽ nhất của Grafana Beyla (nhờ eBPF) là khả năng **Giám sát lưu lượng HTTPS/TLS**.
+- Với các công cụ bắt gói tin mạng thông thường (như Wireshark, tcpdump), bạn sẽ chỉ thấy dữ liệu đã bị mã hoá nếu NGINX phục vụ qua HTTPS.
+- Tuy nhiên, Beyla móc nối (hook) trực tiếp vào các thư viện mã hoá (như OpenSSL/BoringSSL) bên trong tiến trình NGINX. Do đó, nó có thể lấy được Request/Response HTTP ở dạng **chưa mã hoá (plaintext)** ngay trước khi dữ liệu bị mã hoá để gửi đi, hoặc ngay sau khi vừa được giải mã. Việc này hoàn toàn tự động và không cần bạn cung cấp TLS Certificate hay Private Key cho Beyla.
+
+---
+
+## 8. So sánh: Beyla vs NGINX Prometheus Exporter
 
 Việc lựa chọn công cụ phụ thuộc vào mục đích đo lường của bạn:
 
@@ -171,3 +189,17 @@ Việc lựa chọn công cụ phụ thuộc vào mục đích đo lường củ
 
 > **Lời khuyên thực tiễn:**
 > Bạn hoàn toàn có thể **kết hợp cả hai công cụ**. Hãy dùng `NGINX Prometheus Exporter` để theo dõi sức khoẻ của tiến trình NGINX (số lượng worker, connection queue), và dùng **Grafana Beyla** để theo dõi chi tiết hiệu năng của dòng chảy dữ liệu (lưu lượng HTTP, độ trễ từng API) một cách tự động.
+
+---
+
+## 9. Khắc phục sự cố thường gặp (Troubleshooting)
+
+1. **Beyla không bắt được metrics:**
+   - Kiểm tra xem Linux Kernel của bạn có tương thích không (`uname -r` >= 4.18, tốt nhất là 5.8+).
+   - Đảm bảo Beyla chạy bằng quyền `root` hoặc container đã được set `privileged: true` / `cap_add: [SYS_ADMIN]`.
+2. **Prometheus không hiển thị dữ liệu:**
+   - Nếu bạn dùng port `:8999` để scrape, hãy xem log của Beyla xem port đã được mở thành công chưa.
+   - Nếu bạn dùng `otel_metrics_export` (đẩy Push về Collector), hãy đảm bảo địa chỉ OTel Collector là chính xác và port `4318` đang mở.
+3. **Dashboard Grafana bị trống (No Data):**
+   - Kiểm tra lại phần chọn Data Source trên cùng của Dashboard.
+   - Xác minh xem có request thực tế nào đang gọi vào NGINX không (nếu không có traffic, Beyla sẽ không sinh metric). Thử dùng lệnh `curl` liên tục để tạo dữ liệu mồi.
