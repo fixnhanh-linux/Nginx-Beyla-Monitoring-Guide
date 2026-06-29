@@ -103,7 +103,41 @@ helm upgrade --install beyla grafana/beyla -f helm-beyla.yaml -n monitoring --cr
 
 ---
 
-## 5. Trực quan hóa với Grafana Dashboard
+## 5. Triển khai trọn gói bằng Docker Compose (Khuyến nghị)
+
+Để bạn có thể thử nghiệm ngay lập tức toàn bộ hệ thống (NGINX + Beyla + Prometheus + Grafana), repository này đã cấu hình sẵn một ngăn xếp Docker Compose.
+
+### 5.1. Kiến trúc Docker Compose
+- **NGINX** (`:8080`): Máy chủ web mục tiêu.
+- **Grafana Beyla**: Theo dõi NGINX sử dụng `pid: "service:nginx"` và chế độ `privileged: true` để chạy eBPF.
+- **Prometheus** (`:9090`): Tự động scrape dữ liệu từ Beyla.
+- **Grafana** (`:3000`): Tự động provision (cấu hình sẵn) Data source Prometheus và import sẵn Dashboard Beyla (từ file `beyla-dashboard.json`).
+
+### 5.2. Chạy thử nghiệm
+
+1. Clone repository này về máy của bạn:
+   ```bash
+   git clone https://github.com/fixnhanh-linux/Nginx-Beyla-Monitoring-Guide.git
+   cd Nginx-Beyla-Monitoring-Guide
+   ```
+
+2. Khởi chạy toàn bộ hệ thống với Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
+
+3. Tạo một số luồng dữ liệu ảo vào NGINX để Beyla bắt được metrics:
+   ```bash
+   curl http://localhost:8080
+   curl http://localhost:8080/test-404
+   ```
+
+4. Truy cập Grafana tại `http://localhost:3000` (Tài khoản mặc định: `admin` / `admin`).
+5. Vào menu **Dashboards** -> Chọn thư mục **Beyla** -> Mở dashboard **Beyla Dashboards** để xem kết quả.
+
+---
+
+## 6. Trực quan hóa với Grafana Dashboard
 
 Trong kho lưu trữ này (repository), tôi đã đính kèm sẵn file **`beyla-dashboard.json`** (phiên bản chuẩn hóa từ ID 19923 của thư viện Grafana) để bạn có thể import và xem ngay lập tức.
 
@@ -123,7 +157,7 @@ Trong kho lưu trữ này (repository), tôi đã đính kèm sẵn file **`beyl
 
 ---
 
-## 6. So sánh: Beyla vs NGINX Prometheus Exporter
+## 7. So sánh: Beyla vs NGINX Prometheus Exporter
 
 Việc lựa chọn công cụ phụ thuộc vào mục đích đo lường của bạn:
 
