@@ -241,7 +241,64 @@ Một trong những "vũ khí bí mật" mạnh mẽ nhất của Grafana Beyla 
 
 ---
 
-## 8. So sánh: Beyla vs NGINX Prometheus Exporter
+## 8. Hướng dẫn thêm Website thật để giám sát (Thêm Monitor)
+
+Nếu bạn muốn áp dụng hệ thống giám sát này cho một trang web thực tế (ví dụ: `fixcham.cloud`) chạy trên NGINX thay vì chỉ dùng dữ liệu giả lập, bạn chỉ cần thực hiện 3 bước tiêu chuẩn của NGINX. 
+
+Điểm tuyệt vời của Beyla là **Zero-code**: Chỉ cần NGINX chạy web, Beyla sẽ tự động "đánh hơi" và giám sát nó mà không cần cài đặt thêm agent vào code của bạn.
+
+### Bước 1: Tạo mã nguồn trang web
+Tạo thư mục chứa mã nguồn và file `index.html`:
+```bash
+sudo mkdir -p /var/www/fixcham.cloud/html
+
+# Tạo một trang web cơ bản
+sudo bash -c 'cat << EOF > /var/www/fixcham.cloud/html/index.html
+<!DOCTYPE html>
+<html>
+<head><title>Welcome to fixcham.cloud</title></head>
+<body>
+    <h1>Trang web thật 100%</h1>
+    <p>Hệ thống này đang được giám sát bởi <b>Grafana Beyla eBPF</b>.</p>
+</body>
+</html>
+EOF'
+```
+
+### Bước 2: Cấu hình Virtual Host (Server Block) trên NGINX
+Tạo file cấu hình để NGINX nhận diện tên miền `fixcham.cloud`:
+```bash
+sudo nano /etc/nginx/sites-available/fixcham.cloud
+```
+Nội dung file:
+```nginx
+server {
+    listen 80;
+    server_name fixcham.cloud www.fixcham.cloud;
+    
+    root /var/www/fixcham.cloud/html;
+    index index.html;
+    
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+```
+
+### Bước 3: Kích hoạt và tải lại NGINX
+```bash
+# Kích hoạt trang web
+sudo ln -s /etc/nginx/sites-available/fixcham.cloud /etc/nginx/sites-enabled/
+
+# Tải lại cấu hình NGINX
+sudo systemctl reload nginx
+```
+
+**Hoàn tất!** Giờ đây bất cứ ai truy cập vào trang web của bạn thông qua domain `fixcham.cloud`, công nghệ eBPF của Beyla sẽ lập tức chụp lấy request đó và bắn lên Dashboard Grafana để bạn theo dõi băng thông, độ trễ và các lỗi nếu có.
+
+---
+
+## 9. So sánh: Beyla vs NGINX Prometheus Exporter
 
 Việc lựa chọn công cụ phụ thuộc vào mục đích đo lường của bạn:
 
